@@ -49,8 +49,125 @@
     
     <div class="row">
       <div class="span8" id="info" style="display:none">
-        
+          <h2>Controls4PC</h2>
+          <table class="table table-condensed">
+            <tr><th>N64</th><th>Keyboard</th></tr>
+            <tr><td>Start</td><td>A</td></tr>
+            <tr><td>A</td><td>S</td></tr>
+            <tr><td>B</td><td>X</td></tr>
+            <tr><td>Z</td><td>Z</td></tr>
+            <tr><td>L</td><td>C</td></tr>
+            <tr><td>R</td><td>V</td></tr>
+            <tr><td>DPad Up</td><td>T</td></tr>
+            <tr><td>DPad Down</td><td>G</td></tr>
+            <tr><td>DPad Left</td><td>F</td></tr>
+            <tr><td>DPad Right</td><td>H</td></tr>
+            <tr><td>C Up</td><td>I</td></tr>
+            <tr><td>C Down</td><td>K</td></tr>
+            <tr><td>C Left</td><td>J</td></tr>
+            <tr><td>C Right</td><td>L</td></tr>
+          </table>
       </div>
     </div>
+    
+    <script src="js/jquery.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/stats.js"></script>
+    <script src="js/glUtils.js"></script>
+    <script src="js/webgl-debug.js"></script>
+
+    <script src="src/n64.js"></script>
+    <script src="src/r4300.js"></script>
+    <script src="src/debugger.js"></script>
+    <script src="src/disassemble.js"></script>
+    <script src="src/hle.js"></script>
+    <script src="src/romdb.js"></script>
+    <script src="src/sync.js"></script>
+    
+    <!-- script src="n64.min.js"></script -->
+
+    <script id="fill-shader-vs" type="x-shader/x-vertex">
+      attribute vec3 aVertexPosition;
+      uniform mat4 uPMatrix;
+      void main(void) {
+        gl_Position = uPMatrix * vec4(aVertexPosition, 1.0);
+      }
+    </script>
+    <script id="fill-shader-fs" type="x-shader/x-fragment">
+      precision mediump float;
+      uniform vec4 uFillColor;
+      varying mediump vec2 vTextureCoord;
+      void main(void) {
+        gl_FragColor = uFillColor;
+      }
+    </script>
+
+
+
+    <script id="blit-shader-vs" type="x-shader/x-vertex">
+      attribute vec4 aVertexPosition;
+      attribute vec2 aTextureCoord;
+      varying mediump vec2 vTextureCoord;
+      void main(void) {
+        gl_Position   = aVertexPosition;
+        vTextureCoord = aTextureCoord;
+      }
+    </script>
+    <script id="blit-shader-fs" type="x-shader/x-fragment">
+      precision mediump float;
+      varying mediump vec2 vTextureCoord;
+      uniform sampler2D uSampler;
+      void main(void) {
+        gl_FragColor = texture2D(uSampler, vTextureCoord);
+      }
+    </script>
+
+
+    <script id="n64-shader-vs" type="x-shader/x-vertex">
+      attribute vec4 aVertexPosition;
+      attribute vec4 aVertexColor;
+      attribute vec2 aTextureCoord;
+      //uniform mat4 uPMatrix;
+      uniform vec2 uTexOffset;
+      uniform vec2 uTexScale;
+      varying       vec4 vColor;
+      varying mediump vec2 vTextureCoord;
+      void main(void) {
+        gl_Position   = /*uPMatrix **/ aVertexPosition;
+        vColor        = aVertexColor;
+        vTextureCoord = (aTextureCoord - uTexOffset) * uTexScale;
+      }
+    </script>
+    <script id="n64-shader-fs" type="x-shader/x-fragment">
+      precision mediump float;
+      varying       vec4 vColor;
+      varying mediump vec2 vTextureCoord;
+      uniform sampler2D uSampler;
+      uniform       vec4 uPrimColor;
+      uniform       vec4 uEnvColor;
+      void main(void) {
+        vec4 shade = vColor;
+        vec4 prim  = uPrimColor;
+        vec4 env   = uEnvColor;
+        vec4 one   = vec4(1,1,1,1);
+        vec4 zero  = vec4(0,0,0,0);
+        vec4 tex0  = texture2D(uSampler, vTextureCoord);
+        vec4 tex1  = tex0;  // FIXME
+        vec4 col;
+        vec4 combined = vec4(0,0,0,1);
+        float lod_frac      = 0.0;    // FIXME
+        float prim_lod_frac = 0.0;    // FIXME
+        float k5            = 0.0;    // FIXME
+        {{body}}
+        gl_FragColor = col;
+      }
+    </script>
+
+    <script>
+    $(document).ready(function(){
+      n64js.init();
+    });
+    </script>
+    
   </body>
 </html>
